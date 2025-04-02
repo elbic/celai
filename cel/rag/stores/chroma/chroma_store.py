@@ -11,7 +11,7 @@ from cel.rag.text2vec.utils import Embedding, Text2VectorProvider
 @dataclass
 class VectorRegisterResult(VectorRegister):
     """Vector register for ChromaDB"""
-    distance: float
+    distance: float = 0.0  # Adding default value to avoid non-default argument error
     
 
 class ChromaStore(VectorStore):
