@@ -133,8 +133,11 @@ class MarkdownRAG(RAGRetriever):
                 'has_image': '![' in slice.text
             }
             
+            # Filter out None values from metadata
+            filtered_metadata = {k: v for k, v in enhanced_metadata.items() if v is not None}
+            
             # Store the slice
-            self.store.upsert_text(slice.id, slice.text, enhanced_metadata)
+            self.store.upsert_text(slice.id, slice.text, filtered_metadata)
             
         except Exception as e:
             log.error(f"Error embedding slice {slice.id}: {str(e)}")
