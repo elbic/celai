@@ -105,7 +105,7 @@ md_provider = MarkdownProvider()
 
 # Initialize the vector store
 store = ChromaStore(
-    persist_directory="./chroma_db",
+    persist_directory="/tmp/diskcache",
     collection_name="demo",
     openai_api_key=os.environ.get("OPENAI_API_KEY")
 )

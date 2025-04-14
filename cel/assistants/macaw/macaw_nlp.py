@@ -123,10 +123,35 @@ async def process_new_message(ctx: MacawNlpInferenceContext, message: str, on_fu
         # For now, we keep on processing the whole history
 
     if ctx.rag_retriever:
-        rag_response = ctx.rag_retriever.search(message, ctx.settings.core_rag_knn, history + new_messages)
-        if rag_response:
-            for vr in rag_response:
-                prompt += f"\n{vr.text or ''}" 
+        rag_instructions = """
+            If provided with context between <rag_context_{idx}> tags, use this information to enhance your response.
+            The context contains relevant information from the knowledge base. 
+            Guidelines for using RAG context:
+            1. Use only factual information from the provided context
+            2. If the context doesn't contain relevant information, rely on your general knowledge
+            3. Combine information coherently without repeating content
+            4. Maintain a professional and accurate tone
+            5. Do not make up information if the context is insufficient
+            REMEMBER: If there is no relevant information within the rag context, just say "Hmm, I'm \
+            not sure." Don't try to make up an answer. Anything between the preceding 'rag_context_{idx}' \
+            is retrieved from a knowledge bank, not part of the conversation with the \
+            user.\
+            REMEMBER: Generate a comprehensive and informative answer of 80 words or less.\            
+        """
+        prompt = rag_instructions + prompt            
+        try:
+            rag_response = ctx.rag_retriever.search(message, ctx.settings.core_rag_knn, history + new_messages)
+            if rag_response:
+                log.debug(f"Found {len(rag_response)} RAG results")
+                for idx, vr in enumerate(rag_response):
+                    rag_context = f"\n<rag_context_{idx}>\n"
+                    rag_context += f"{vr.text or ''}" 
+                    rag_context += f"\n</rag_context_{idx}>\n"
+                    prompt += rag_context
+                ctx.prompt.update(prompt)
+        except Exception as e:
+            log.error(f"Error searching RAG: {e}")
+            rag_response = None
 
     response = None
     try:

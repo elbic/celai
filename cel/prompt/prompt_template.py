@@ -114,3 +114,9 @@ class PromptTemplate:
             log.error(f"Error occurred while calling function {func_name}:  {str(e)}")
         
         return json.dumps(response) if isinstance(response, dict) else str(response)
+    
+    def update(self, prompt: str):
+        """
+        Appends a new prompt to the existing prompt.
+        """
+        self.prompt += prompt
